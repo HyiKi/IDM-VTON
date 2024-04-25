@@ -175,12 +175,12 @@ def handler():
     content_type = request.content_type
     query_string = request.query_string.decode("utf-8")
 
-    print("request_body: {}".format(request_body))
-    print(
-        "method: {} path: {} query_string: {}".format(
-            request_method, path_info, query_string
-        )
-    )
+    # print("request_body: {}".format(request_body))
+    # print(
+    #     "method: {} path: {} query_string: {}".format(
+    #         request_method, path_info, query_string
+    #     )
+    # )
     body = json.loads(request_body)
 
     # args
@@ -357,17 +357,18 @@ def handler():
     image_idx = 0
     data = []
     for image in images:
-        out_img = image.resize(crop_size)        
-        image.paste(out_img, (int(left), int(top)))
-        image.save('./images_output/out_' + model_type + '_' + str(image_idx) + '.png')
+        if is_checked_crop:
+            out_img = image.resize(crop_size)
+            image.paste(out_img, (int(left), int(top)))
+        image.save("./images_output/out_" + model_type + "_" + str(image_idx) + ".png")
         image_idx += 1
         # 将图片转换为 BytesIO 对象
         img_byte_arr = io.BytesIO()
-        image.save(img_byte_arr, format='PNG')
+        image.save(img_byte_arr, format="PNG")
         img_byte_arr = img_byte_arr.getvalue()
 
         # 将 BytesIO 对象转换为 base64 编码
-        base64_image = base64.b64encode(img_byte_arr).decode('utf-8')
+        base64_image = base64.b64encode(img_byte_arr).decode("utf-8")
 
         # 将 Base64 字符串包装在 {"image": <base64>} 的格式中
         image_data = {"image": base64_image}
@@ -376,6 +377,7 @@ def handler():
         data.append(image_data)
 
     return render(data), 200, {"Content-Type": "application/json"}
+
 
 if __name__ == "__main__":
     app.run()
