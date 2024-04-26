@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from PIL import Image, ImageDraw
 
+# https://raw.githubusercontent.com/levihsu/OOTDiffusion/main/images/workflow.png
 label_map = {
     "background": 0,
     "hat": 1,

@@ -66,12 +66,14 @@ def pil_to_binary_mask(pil_image, threshold=0):
 base_path = "yisol/IDM-VTON"
 example_path = os.path.join(os.path.dirname(__file__), "example")
 
+# 图像分割
 unet = UNet2DConditionModel.from_pretrained(
     base_path,
     subfolder="unet",
     torch_dtype=torch.float16,
 )
 unet.requires_grad_(False)
+# 分词器
 tokenizer_one = AutoTokenizer.from_pretrained(
     base_path,
     subfolder="tokenizer",
@@ -84,23 +86,30 @@ tokenizer_two = AutoTokenizer.from_pretrained(
     revision=None,
     use_fast=False,
 )
+
+# 离散去噪调度器 Denoising Diffusion Probabilistic Models Scheduler
 noise_scheduler = DDPMScheduler.from_pretrained(base_path, subfolder="scheduler")
 
+# Contrastive Language-Image Pre-Training 对比 文本-图像 预训练 图像和文本的互相转换
+# 文本 转 向量，使得模型能够理解
 text_encoder_one = CLIPTextModel.from_pretrained(
     base_path,
     subfolder="text_encoder",
     torch_dtype=torch.float16,
 )
+# 添加投影头，增强模型文本特征的表达能力
 text_encoder_two = CLIPTextModelWithProjection.from_pretrained(
     base_path,
     subfolder="text_encoder_2",
     torch_dtype=torch.float16,
 )
+# 图像 转 向量，使得模型能够理解，从而与文本信息进行匹配
 image_encoder = CLIPVisionModelWithProjection.from_pretrained(
     base_path,
     subfolder="image_encoder",
     torch_dtype=torch.float16,
 )
+# 变分自编码器 Variational Auto-encoder 增强图形
 vae = AutoencoderKL.from_pretrained(
     base_path,
     subfolder="vae",
