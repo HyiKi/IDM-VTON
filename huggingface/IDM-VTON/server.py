@@ -159,6 +159,7 @@ import sys
 import json
 import io
 import base64
+import gc
 
 app = Flask(__name__)
 
@@ -170,28 +171,7 @@ def render(data):
     result_dict["data"] = data
     return json.dumps(result_dict)
 
-
-@app.route("/", methods=["POST"])
-def handler():
-    for k, v in request.headers.items():
-        if k.startswith("HTTP_"):
-            # process custom request headers
-            pass
-
-    request_body = request.data
-    request_method = request.method
-    path_info = request.path
-    content_type = request.content_type
-    query_string = request.query_string.decode("utf-8")
-
-    # print("request_body: {}".format(request_body))
-    # print(
-    #     "method: {} path: {} query_string: {}".format(
-    #         request_method, path_info, query_string
-    #     )
-    # )
-    body = json.loads(request_body)
-
+def run(body):
     # args
     steps = body.get("steps", 30)
     seed = body.get("seed", -1)
@@ -384,7 +364,31 @@ def handler():
 
         # 将包含图像数据的字典附加到 data 列表中
         data.append(image_data)
+    return data
 
+@app.route("/", methods=["POST"])
+def handler():
+    for k, v in request.headers.items():
+        if k.startswith("HTTP_"):
+            # process custom request headers
+            pass
+
+    request_body = request.data
+    request_method = request.method
+    path_info = request.path
+    content_type = request.content_type
+    query_string = request.query_string.decode("utf-8")
+
+    # print("request_body: {}".format(request_body))
+    # print(
+    #     "method: {} path: {} query_string: {}".format(
+    #         request_method, path_info, query_string
+    #     )
+    # )
+    body = json.loads(request_body)
+    data = run(body)
+    gc.collect()
+    torch.cuda.empty_cache()
     return render(data), 200, {"Content-Type": "application/json"}
 
 
